@@ -5,7 +5,7 @@ using ProyectoSeguridadInformatica.Models;
 
 namespace ProyectoSeguridadInformatica.Services
 {
-    public class RsaService : IRsaService, IDisposable
+    public class RsaService : IDisposable
     {
         private readonly RSA _rsa;
 

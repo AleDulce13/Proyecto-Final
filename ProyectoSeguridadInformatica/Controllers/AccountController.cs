@@ -1,13 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using ProyectoSeguridadInformatica.Models;
 using ProyectoSeguridadInformatica.Services;
+using System.Security.Cryptography;
+using System.Text;
+using BC = BCrypt.Net.BCrypt;
 
 namespace ProyectoSeguridadInformatica.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IFirebaseUserService _firebaseUserService;
-        public AccountController(IFirebaseUserService firebaseUserService)
+        private readonly FirebaseUserService _firebaseUserService;
+        public AccountController(FirebaseUserService firebaseUserService)
         {
             _firebaseUserService = firebaseUserService;
         }
@@ -18,7 +21,7 @@ namespace ProyectoSeguridadInformatica.Controllers
             return View();
         }
 
-        [HttpPost]
+        [HttpPost]  
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
@@ -34,13 +37,12 @@ namespace ProyectoSeguridadInformatica.Controllers
                 return View(model);
             }
 
-            var (hash, salt) = PasswordHasher.HashPassword(model.Password);
+            var hash = BC.EnhancedHashPassword(model.Password, 12);
 
             var user = new User
-            {
+            {   
                 Email = model.Email,
-                PasswordHash = hash,
-                PasswordSalt = salt
+                PasswordHash = hash
             };
 
             await _firebaseUserService.CreateUserAsync(user);
@@ -66,7 +68,7 @@ namespace ProyectoSeguridadInformatica.Controllers
 
             var user = await _firebaseUserService.GetUserByEmailAsync(model.Email);
             if (user == null ||
-                !PasswordHasher.VerifyPassword(model.Password, user.PasswordHash, user.PasswordSalt))
+                !BC.EnhancedVerify(model.Password, user.PasswordHash))
             {
                 ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
                 return View(model);

@@ -14,8 +14,8 @@ namespace ProyectoSeguridadInformatica
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
             builder.Services.Configure<RsaOptions>(builder.Configuration.GetSection("Rsa"));
 
-            builder.Services.AddHttpClient<IFirebaseUserService, FirebaseUserService>();
-            builder.Services.AddSingleton<IRsaService, RsaService>();
+            builder.Services.AddHttpClient<FirebaseUserService>();
+            builder.Services.AddSingleton<RsaService>();
             builder.Services.AddSession();
 
             var app = builder.Build();

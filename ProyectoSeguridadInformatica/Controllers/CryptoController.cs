@@ -6,9 +6,9 @@ namespace ProyectoSeguridadInformatica.Controllers
 {
     public class CryptoController : Controller
     {
-        private readonly IRsaService _rsaService;
+        private readonly RsaService _rsaService;
 
-        public CryptoController(IRsaService rsaService)
+        public CryptoController(RsaService rsaService)
         {
             _rsaService = rsaService;
         }

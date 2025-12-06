@@ -4,7 +4,7 @@ using ProyectoSeguridadInformatica.Models;
 
 namespace ProyectoSeguridadInformatica.Services
 {
-    public class FirebaseUserService : IFirebaseUserService
+    public class FirebaseUserService 
     {
         private readonly HttpClient _httpClient;
         private readonly FirebaseOptions _options;
