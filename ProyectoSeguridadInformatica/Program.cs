@@ -14,6 +14,9 @@ namespace ProyectoSeguridadInformatica
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
             builder.Services.Configure<RsaOptions>(builder.Configuration.GetSection("Rsa"));
 
+            builder.Services.AddHttpClient<FirebaseAuthService>();
+            builder.Services.AddHttpClient<FirebaseUserService>();
+
             builder.Services.AddHttpClient<FirebaseUserService>();
             builder.Services.AddSingleton<RsaService>();
             builder.Services.AddSession();
@@ -28,6 +31,9 @@ namespace ProyectoSeguridadInformatica
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseDeveloperExceptionPage();
+
 
             app.UseSession();
             app.UseAuthorization();

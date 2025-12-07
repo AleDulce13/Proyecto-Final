@@ -1,61 +1,42 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
 using ProyectoSeguridadInformatica.Models;
+using System.Web;
+using System.Text.Json;
+
+
 
 namespace ProyectoSeguridadInformatica.Services
 {
-    public class FirebaseUserService 
+    public class FirebaseUserService
     {
-        private readonly HttpClient _httpClient;
-        private readonly FirebaseOptions _options;
+        private readonly HttpClient _http;
+        private readonly FirebaseOptions _opt;
 
-        public FirebaseUserService(HttpClient httpClient, IOptions<FirebaseOptions> options)
+        public FirebaseUserService(HttpClient http, IOptions<FirebaseOptions> opt)
         {
-            _httpClient = httpClient;
-            _options = options.Value;
+            _http = http;
+            _opt = opt.Value;
         }
 
-        public async Task<User?> GetUserByEmailAsync(string email)
+        private string Url(string path, string token)
+            => $"{_opt.BaseUrl}{path}.json?auth={token}";
+
+        public async Task CreateUserAsync(User user, string idToken)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return null;
-            }
+            var url = Url($"users/{user.Id}", idToken);
+            var response = await _http.PutAsJsonAsync(url, user);
 
-            var url = $"{_options.BaseUrl}users.json";
-            if (!string.IsNullOrEmpty(_options.ApiKey))
-            {
-                url += $"?auth={_options.ApiKey}";
-            }
+            var content = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("RTDB RESPONSE: " + content);  // <-- AGREGA ESTO
 
-            var response = await _httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
-            var data = await response.Content.ReadFromJsonAsync<Dictionary<string, User>>();
-            if (data == null)
-            {
-                return null;
-            }
-
-            return data.Values.FirstOrDefault(u =>
-                u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public async Task<User> CreateUserAsync(User user)
-        {
-            var url = $"{_options.BaseUrl}users/{user.Id}.json";
-            if (!string.IsNullOrEmpty(_options.ApiKey))
-            {
-                url += $"?auth={_options.ApiKey}";
-            }
-
-            var response = await _httpClient.PutAsJsonAsync(url, user);
             response.EnsureSuccessStatusCode();
+        }
 
-            return user;
+        public async Task<User?> GetUserAsync(string uid, string idToken)
+        {
+            var url = Url($"users/{uid}", idToken);
+            return await _http.GetFromJsonAsync<User>(url);
         }
     }
 }

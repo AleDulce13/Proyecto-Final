@@ -9,81 +9,96 @@ namespace ProyectoSeguridadInformatica.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly FirebaseUserService _firebaseUserService;
-        public AccountController(FirebaseUserService firebaseUserService)
+        private readonly FirebaseAuthService _authService;
+        private readonly FirebaseUserService _userService;
+
+        public AccountController(
+            FirebaseAuthService authService,
+            FirebaseUserService userService)
         {
-            _firebaseUserService = firebaseUserService;
+            _authService = authService;
+            _userService = userService;
         }
 
+        // ==========================
+        //     VISTA REGISTRO
+        // ==========================
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
 
-        [HttpPost]  
+        // ==========================
+        //     POST REGISTRO
+        // ==========================
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
+                return View(model);
+
+            var auth = await _authService.RegisterAsync(model.Email, model.Password);
+
+            if (auth == null)
             {
+                ModelState.AddModelError("", "No se pudo registrar el usuario.");
                 return View(model);
             }
-
-            var existing = await _firebaseUserService.GetUserByEmailAsync(model.Email);
-            if (existing != null)
-            {
-                ModelState.AddModelError(string.Empty, "Ya existe un usuario con ese correo.");
-                return View(model);
-            }
-
-            var hash = BC.EnhancedHashPassword(model.Password, 12);
 
             var user = new User
-            {   
-                Email = model.Email,
-                PasswordHash = hash
+            {
+                Id = auth.LocalId,
+                Email = auth.Email
             };
 
-            await _firebaseUserService.CreateUserAsync(user);
-            SignInUser(user);
+            await _userService.CreateUserAsync(user, auth.IdToken);
+
+            SignInUser(auth);
+            
 
             return RedirectToAction("Index", "Home");
         }
 
+        // ==========================
+        //     VISTA LOGIN
+        // ==========================
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
             return View(new LoginViewModel { ReturnUrl = returnUrl });
         }
 
+        // ==========================
+        //     POST LOGIN
+        // ==========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
+                return View(model);
+
+            var auth = await _authService.LoginAsync(model.Email, model.Password);
+
+            if (auth == null)
             {
+                ModelState.AddModelError("", "Credenciales inválidas.");
                 return View(model);
             }
 
-            var user = await _firebaseUserService.GetUserByEmailAsync(model.Email);
-            if (user == null ||
-                !BC.EnhancedVerify(model.Password, user.PasswordHash))
-            {
-                ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
-                return View(model);
-            }
-
-            SignInUser(user);
+            SignInUser(auth);
 
             if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-            {
                 return Redirect(model.ReturnUrl);
-            }
 
             return RedirectToAction("Index", "Home");
         }
 
+        // ==========================
+        //     LOGOUT
+        // ==========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Logout()
@@ -92,10 +107,12 @@ namespace ProyectoSeguridadInformatica.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        private void SignInUser(User user)
+        private void SignInUser(AuthResponse auth)
         {
-            HttpContext.Session.SetString("UserId", user.Id);
-            HttpContext.Session.SetString("UserEmail", user.Email);
+            HttpContext.Session.SetString("UserId", auth.LocalId);
+            HttpContext.Session.SetString("UserEmail", auth.Email);
+            HttpContext.Session.SetString("IdToken", auth.IdToken);
+            HttpContext.Session.SetString("RefreshToken", auth.RefreshToken);
         }
     }
 }

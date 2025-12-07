@@ -4,17 +4,15 @@ namespace ProyectoSeguridadInformatica.Models
 {
     public class User
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Id { get; set; } = "";   // Se asigna con auth.LocalId
 
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
-        [DataType(DataType.Password)]
-        [MinLength(8)]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")]
-        public string PasswordHash { get; set; } = string.Empty;
+        // <-- Esto NO se guarda en Firebase Realtime Database
+        // Firebase Authentication se encarga del hash
+        public string? DisplayName { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
