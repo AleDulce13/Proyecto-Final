@@ -4,10 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using ProyectoSeguridadInformatica.Models;
 using ProyectoSeguridadInformatica.Services;
-using System.Security.Cryptography;
-using System.Text;
 using System.Security.Claims;
-using BC = BCrypt.Net.BCrypt;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ProyectoSeguridadInformatica.Controllers
@@ -17,19 +14,19 @@ namespace ProyectoSeguridadInformatica.Controllers
         private readonly FirebaseUserService _firebaseUserService;
         private readonly ILogger<AccountController> _logger;
         private readonly IMemoryCache _cache;
-        public AccountController(FirebaseUserService firebaseUserService, ILogger<AccountController> logger, IMemoryCache cache)
         private readonly FirebaseAuthService _authService;
         private readonly FirebaseUserService _userService;
 
         public AccountController(
             FirebaseAuthService authService,
-            FirebaseUserService userService)
+            FirebaseUserService userService,
+            ILogger<AccountController> logger,
+            IMemoryCache cache)
         {
-            _firebaseUserService = firebaseUserService;
-            _logger = logger;
-            _cache = cache;
             _authService = authService;
             _userService = userService;
+            _logger = logger;
+            _cache = cache;
         }
 
         // ==========================
@@ -41,10 +38,6 @@ namespace ProyectoSeguridadInformatica.Controllers
             return View();
         }
 
-        [HttpPost]
-        // ==========================
-        //     POST REGISTRO
-        // ==========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("auth-strict")]
@@ -67,8 +60,10 @@ namespace ProyectoSeguridadInformatica.Controllers
                 Email = auth.Email
             };
 
-            await _firebaseUserService.CreateUserAsync(user);
-            await SignInUserAsync(user);
+            await _userService.CreateUserAsync(user, auth.IdToken);
+
+            await SignInUserAsync(user, auth);
+
 
             return RedirectToAction("Index", "Home");
         }
@@ -101,8 +96,6 @@ namespace ProyectoSeguridadInformatica.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var auth = await _authService.LoginAsync(model.Email, model.Password);
-
             // 2. Obtenemos IP y email para el contador de intentos
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var cacheKey = $"login_attempts:{model.Email}:{ip}";
@@ -117,12 +110,12 @@ namespace ProyectoSeguridadInformatica.Controllers
                 return View(model);
             }
 
-            // 4. Lógica normal de login
-            var user = await _firebaseUserService.GetUserByEmailAsync(model.Email);
+            // 4. Llamamos a Firebase Auth
+            var auth = await _authService.LoginAsync(model.Email, model.Password);
 
-            if (user == null || !BC.EnhancedVerify(model.Password, user.PasswordHash))
+            // 5. Si las credenciales son inválidas (auth == null) → contamos como intento fallido
+            if (auth == null)
             {
-                // LOGIN FALLIDO → incrementamos contador
                 attempts = _cache.GetOrCreate(cacheKey, entry =>
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
@@ -144,13 +137,40 @@ namespace ProyectoSeguridadInformatica.Controllers
                 return View(model);
             }
 
+            // 6. Obtenemos el usuario desde la base de datos Firebase
+            var user = await _userService.GetUserAsync(auth.LocalId, auth.IdToken);
+
+            if (user == null)
+            {
+                // LOGIN FALLIDO → incrementamos contador igual que arriba
+                attempts = _cache.GetOrCreate(cacheKey, entry =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                    return 0;
+                });
+
+                var newAttempts = attempts + 1;
+                _cache.Set(cacheKey, newAttempts, TimeSpan.FromMinutes(15));
+
+                _logger.LogWarning(
+                    "Intento de login fallido ({Attempt}/{Max}). Email={Email}, DeviceId={DeviceId}, IP={IP} (usuario no encontrado)",
+                    newAttempts, 5, model.Email, deviceId, ip);
+
+                ModelState.AddModelError(string.Empty,
+                    newAttempts >= 5
+                        ? "Demasiados intentos fallidos. Espera 15 minutos."
+                        : "Credenciales inválidas.");
+
+                return View(model);
+            }
+
             // LOGIN EXITOSO → borramos el contador
             _cache.Remove(cacheKey);
 
             _logger.LogInformation("Login correcto. UserId={UserId}, Email={Email}, DeviceId={DeviceId}, IP={IP}",
                 user.Id, model.Email, deviceId, ip);
 
-            await SignInUserAsync(user);
+            await SignInUserAsync(user, auth);
 
             if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                 return Redirect(model.ReturnUrl);
@@ -170,13 +190,13 @@ namespace ProyectoSeguridadInformatica.Controllers
         [HttpGet]
         public IActionResult CheckAuth()
         {
-            var isAuthenticated = HttpContext.Session.GetString("UserId") != null;
+            var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
             return Json(new { isAuthenticated });
         }
 
 
 
-        private async Task SignInUserAsync(User user)
+        private async Task SignInUserAsync(User user, AuthResponse auth)
         {
             // Renovar sesión para evitar fijación
             HttpContext.Session.Clear();
@@ -193,11 +213,6 @@ namespace ProyectoSeguridadInformatica.Controllers
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            HttpContext.Session.SetString("UserId", user.Id);
-            HttpContext.Session.SetString("UserEmail", user.Email);
-            HttpContext.Session.SetString("SessionCreatedAt", DateTime.UtcNow.ToString("O"));
-            HttpContext.Session.SetString("UserId", auth.LocalId);
-            HttpContext.Session.SetString("UserEmail", auth.Email);
             HttpContext.Session.SetString("IdToken", auth.IdToken);
             HttpContext.Session.SetString("RefreshToken", auth.RefreshToken);
         }

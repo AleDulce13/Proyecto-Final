@@ -25,14 +25,9 @@
 
                 <p class="security-hero-lead mb-3">
                     Este sitio simula un entorno seguro donde los usuarios se registran, inician sesión
-                    y utilizan cifrado asimétrico RSA para proteger texto sensible.
+                    y utilizan cifrado simétrico AES con contraseña para proteger texto sensible.
                     Está pensado como un <strong>laboratorio educativo</strong>, por lo que combina buenas prácticas
                     de seguridad con algunas limitaciones deliberadas.
-                </p>
-
-                <p class="security-note mb-0">
-                    <strong>Importante:</strong> no introduzcas contraseñas reales ni datos personales.
-                    El objetivo es entender cómo se implementan las defensas y dónde siguen existiendo riesgos.
                 </p>
             </div>
         </div>
@@ -46,19 +41,23 @@
                 </p>
 
                 <ul class="security-list mb-3">
-                    <li>Servicio <strong>FirebaseUserService</strong> para leer y guardar usuarios en Firebase.</li>
-                    <li>Contraseñas almacenadas como <strong>hash BCrypt (modo mejorado)</strong>, no en texto plano.</li>
-                    <li>Servicio <strong>RsaService</strong> que cifra y descifra usando RSA con OAEP-SHA256.</li>
-                    <li>Controladores que protegen las acciones de cifrado y descifrado exigiendo sesión iniciada.</li>
+                    <li>
+                        Autenticación delegada en <strong>Firebase Auth</strong> :
+                        la aplicación nunca almacena contraseñas, sólo consume tokens emitidos por Firebase.
+                    </li>
+                    <li>
+                        Servicio <strong>FirebaseUserService</strong> para leer y guardar el perfil básico
+                        de usuario en Firebase Realtime Database usando <code>IdToken</code> por petición.
+                    </li>
+                    <li>
+                        Servicio <strong>AesService</strong> que cifra y descifra usando AES (cifrado simétrico)
+                        a partir de una contraseña que introduce el propio usuario.
+                    </li>
+                    <li>
+                        Controladores protegidos con <strong>cookies de autenticación</strong> y
+                        <code>[Authorize]</code> para limitar el acceso a las acciones de cifrado y descifrado.
+                    </li>
                 </ul>
-
-                <div class="security-divider"></div>
-
-                <p class="security-note mb-0">
-                    Estas características aumentan la seguridad respecto a un sitio básico, pero
-                    <strong>no sustituyen a un framework completo de identidad</strong> ni a una configuración
-                    endurecida para producción.
-                </p>
             </div>
         </div>
     </div>
@@ -73,14 +72,14 @@
 
                 <ul class="security-list mb-3">
                     <li>
-                        <strong>Hash de contraseñas con BCrypt</strong>  
-                        Las contraseñas nunca se guardan en texto claro; se aplica un algoritmo de hashing con factor
-                        de costo elevado, lo que dificulta ataques por fuerza bruta en caso de fuga de la base de datos.
+                        <strong>Autenticación gestionada por Firebase</strong>  
+                        Las credenciales se validan en Firebase Auth y la aplicación sólo maneja tokens
+                        de acceso. No se almacenan contraseñas ni hashes locales.
                     </li>
                     <li>
-                        <strong>Cifrado asimétrico RSA con OAEP-SHA256</strong>  
-                        El texto que se cifra desde la sección de criptografía se protege con RSA y relleno OAEP
-                        moderno, mitigando ataques sobre el esquema de cifrado.
+                        <strong>Cifrado simétrico con AES</strong>  
+                        El texto que se cifra desde la sección de criptografía se protege con AES derivando la clave
+                        de una contraseña elegida por el usuario mediante PBKDF2, lo que dificulta ataques de fuerza bruta.
                     </li>
                     <li>
                         <strong>Protección de rutas sensibles</strong>  
@@ -110,46 +109,31 @@
         <div class="col-md-6">
             <div class="security-card h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="security-section-title mb-0">Limitaciones y fallos conocidos</h2>
-                    <span class="security-badge security-badge--risk">Riesgos a mejorar</span>
+                    <h2 class="security-section-title mb-0">Resiliencia y monitorización</h2>
+                    <span class="security-badge security-badge--ok">Defensas activas</span>
                 </div>
 
                 <ul class="security-list mb-3">
                     <li>
-                        <strong>Sin configuración HTTPS forzada</strong>  
-                        El código no obliga a usar HTTPS ni configura cabeceras estrictas
-                        (HSTS, CSP, etc.). En un entorno real, esto expondría las sesiones a ataques
-                        de intercepción si se usa HTTP simple.
+                        <strong>Rate limiting y anti‑bruteforce</strong>  
+                        El acceso a login y registro está protegido con limitadores de tasa nativos de ASP.NET Core
+                        y un contador de intentos por email + IP + dispositivo, reduciendo ataques de fuerza bruta.
                     </li>
                     <li>
-                        <strong>Gestión de sesión mejorable</strong>  
-                        Aunque ahora se usan <em>cookies de autenticación con claims</em> y opciones más seguras
-                        (HTTP‑only, <code>SameSite</code>, expiración y renovación deslizante), seguirá siendo
-                        recomendable integrar un sistema de identidad completo en proyectos reales.
+                        <strong>Resiliencia con Polly</strong>  
+                        Las llamadas a Firebase usan reintentos con retroceso exponencial y <em>circuit breaker</em>,
+                        protegiendo el sistema frente a fallos temporales del backend externo.
                     </li>
                     <li>
-                        <strong>Bloqueo y 2FA básicos</strong>  
-                        Se ha añadido bloqueo temporal tras varios intentos fallidos y un segundo factor de
-                        autenticación por código de un solo uso, pero en un entorno productivo debería
-                        integrarse con canales reales (SMS/correo/app) y políticas de seguridad más estrictas.
-                    </li>
-                    <li>
-                        <strong>Uso educativo de Firebase</strong>  
-                        Los usuarios se almacenan mediante peticiones directas a Firebase. No se muestra en
-                        este proyecto una configuración completa de reglas de seguridad, auditoría ni rotación
-                        de claves de API.
-                    </li>
-                    <li>
-                        <strong>Logging y monitorización limitados</strong>  
-                        No se incluyen registros detallados de accesos, intentos fallidos o anomalías,
-                        lo que complica la detección temprana de ataques.
+                        <strong>Logging de eventos críticos</strong>  
+                        Se registran intentos de login, bloqueos por demasiados intentos, errores globales
+                        y activación de políticas de resiliencia, facilitando la detección de abusos y problemas.
                     </li>
                 </ul>
 
                 <p class="security-note mb-0">
-                    Estas limitaciones son intencionadas para fines didácticos. A partir de este punto, puedes
-                    proponer y aplicar <strong>mejoras de endurecimiento</strong> (seguridad en cookies, cabeceras,
-                    roles, MFA, políticas de contraseñas, etc.) como parte de la práctica.
+                    Estas capacidades ayudan a que el sistema falle de forma controlada y permita
+                    analizar qué está ocurriendo durante un ataque o incidente.
                 </p>
             </div>
         </div>

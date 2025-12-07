@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
+using ProyectoSeguridadInformatica.Middleware;
 using ProyectoSeguridadInformatica.Models;
 using ProyectoSeguridadInformatica.Services;
 using Polly;
@@ -19,10 +20,8 @@ namespace ProyectoSeguridadInformatica
             // Add services to the container.
             builder.Services.AddControllersWithViews();
             builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection("Firebase"));
-            builder.Services.Configure<RsaOptions>(builder.Configuration.GetSection("Rsa"));
 
             builder.Services.AddHttpClient<FirebaseAuthService>();
-            builder.Services.AddHttpClient<FirebaseUserService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddTransient<DeviceIdHandler>();
@@ -57,7 +56,7 @@ namespace ProyectoSeguridadInformatica
             });
             builder.Services.AddDataProtection();
             builder.Services.AddMemoryCache();
-            builder.Services.AddSingleton<RsaService>();
+            builder.Services.AddSingleton<AesService>();
             builder.Services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(20);
@@ -124,6 +123,9 @@ namespace ProyectoSeguridadInformatica
             });
             var app = builder.Build();
 
+            // Middleware global de excepciones (antes del resto del pipeline)
+            app.UseMiddleware<GlobalExceptionMiddleware>();
+
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
@@ -132,10 +134,6 @@ namespace ProyectoSeguridadInformatica
             app.UseStaticFiles();
 
             app.UseRouting();
-
-            app.UseDeveloperExceptionPage();
-
-
             // Middleware para asegurar cookie de dispositivo en cada petición
             app.Use(async (context, next) =>
             {

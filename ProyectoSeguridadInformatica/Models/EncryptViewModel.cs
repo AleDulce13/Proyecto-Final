@@ -8,6 +8,10 @@ namespace ProyectoSeguridadInformatica.Models
         [Display(Name = "Texto plano")]
         public string PlainText { get; set; } = string.Empty;
 
+        [Required]
+        [Display(Name = "Clave (contraseña)")]
+        public string Key { get; set; } = string.Empty;
+
         [Display(Name = "Texto cifrado (Base64)")]
         public string? CipherText { get; set; }
     }

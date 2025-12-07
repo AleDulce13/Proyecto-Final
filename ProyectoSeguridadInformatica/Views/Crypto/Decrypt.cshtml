@@ -6,10 +6,10 @@
 
 <div class="row justify-content-center">
     <div class="col-md-8 security-card">
-        <h2 class="mb-2 security-section-title">Desencriptar texto con RSA</h2>
+        <h2 class="mb-2 security-section-title">Desencriptar texto con AES</h2>
         <p class="security-section-subtitle mb-4">
-            Introduce el texto cifrado en Base64 generado por este mismo sitio para recuperar el texto original.
-            Si el contenido ha sido manipulado o no fue cifrado correctamente, el sistema mostrará un error en lugar de exponer datos.
+            Introduce el texto cifrado en Base64 generado por este mismo sitio junto con la misma clave
+            (contraseña) que usaste al cifrar. Si el texto o la clave no coinciden, el sistema mostrará un error.
         </p>
 
         <form asp-action="Decrypt" method="post">
@@ -21,6 +21,12 @@
                 <span asp-validation-for="CipherText" class="text-danger"></span>
             </div>
 
+            <div class="mb-3">
+                <label asp-for="Key" class="form-label"></label>
+                <input asp-for="Key" class="form-control" type="password" />
+                <span asp-validation-for="Key" class="text-danger"></span>
+            </div>
+
             <button type="submit" class="btn btn-primary">Desencriptar</button>
         </form>
 
@@ -28,7 +34,7 @@
         {
             <hr />
             <h4>Texto plano</h4>
-            <textarea class="form-control" rows="4" readonly>@Model.PlainText</textarea>
+            <textarea class="form-control" rows="4" readonly style="background-color:#020617;color:#e5e7eb;">@Model.PlainText</textarea>
         }
     </div>
 </div>

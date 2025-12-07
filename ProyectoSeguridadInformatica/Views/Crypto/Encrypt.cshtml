@@ -6,10 +6,11 @@
 
 <div class="row justify-content-center">
     <div class="col-md-8 security-card">
-        <h2 class="mb-2 security-section-title">Encriptar texto con RSA</h2>
+        <h2 class="mb-2 security-section-title">Encriptar texto con AES</h2>
         <p class="security-section-subtitle mb-4">
-            Este módulo usa <strong>RSA</strong> con relleno <strong>OAEP-SHA256</strong> para proteger el texto que escribas.
-            Sirve como demostración de cifrado asimétrico: sólo quien tenga la clave privada correcta podrá descifrar el resultado.
+            Este módulo usa <strong>AES</strong> (cifrado simétrico) con una contraseña que eliges tú.
+            A partir de esa contraseña se deriva una clave segura internamente; deberás usar la misma
+            clave para poder recuperar el texto original.
         </p>
 
         <form asp-action="Encrypt" method="post">
@@ -21,6 +22,15 @@
                 <span asp-validation-for="PlainText" class="text-danger"></span>
             </div>
 
+            <div class="mb-3">
+                <label asp-for="Key" class="form-label"></label>
+                <input asp-for="Key" class="form-control" type="password" />
+                <span asp-validation-for="Key" class="text-danger"></span>
+                <small class="form-text text-muted">
+                    Usa una frase que recuerdes; la misma será necesaria para desencriptar.
+                </small>
+            </div>
+
             <button type="submit" class="btn btn-primary">Encriptar</button>
         </form>
 
@@ -28,7 +38,7 @@
         {
             <hr />
             <h4>Resultado cifrado (Base64)</h4>
-            <textarea class="form-control" rows="4" readonly>@Model.CipherText</textarea>
+            <textarea class="form-control" rows="4" readonly style="background-color:#020617;color:#e5e7eb;">@Model.CipherText</textarea>
         }
     </div>
 </div>

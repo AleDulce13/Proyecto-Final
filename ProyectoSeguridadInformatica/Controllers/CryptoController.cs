@@ -8,19 +8,21 @@ namespace ProyectoSeguridadInformatica.Controllers
     [Authorize]
     public class CryptoController : Controller
     {
-        private readonly RsaService _rsaService;
+        private readonly AesService _aesService;
 
-        public CryptoController(RsaService rsaService)
+        public CryptoController(AesService aesService)
         {
-            _rsaService = rsaService;
+            _aesService = aesService;
         }
-
+        
+        [Authorize]
         [HttpGet]
         public IActionResult Encrypt()
         {
             return View(new EncryptViewModel());
         }
 
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Encrypt(EncryptViewModel model)
@@ -30,16 +32,26 @@ namespace ProyectoSeguridadInformatica.Controllers
                 return View(model);
             }
 
-            model.CipherText = _rsaService.Encrypt(model.PlainText);
+            try
+            {
+                model.CipherText = _aesService.Encrypt(model.PlainText, model.Key);
+            }
+            catch
+            {
+                ModelState.AddModelError(string.Empty, "No se pudo cifrar el texto. Revisa la entrada e inténtalo de nuevo.");
+            }
+
             return View(model);
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult Decrypt()
         {
             return View(new DecryptViewModel());
         }
 
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Decrypt(DecryptViewModel model)
@@ -51,11 +63,11 @@ namespace ProyectoSeguridadInformatica.Controllers
 
             try
             {
-                model.PlainText = _rsaService.Decrypt(model.CipherText);
+                model.PlainText = _aesService.Decrypt(model.CipherText, model.Key);
             }
             catch
             {
-                ModelState.AddModelError(string.Empty, "No se pudo desencriptar el texto. Verifica que sea un Base64 válido generado por esta aplicación.");
+                ModelState.AddModelError(string.Empty, "No se pudo desencriptar el texto. Verifica que el Base64 y la clave sean correctos.");
             }
 
             return View(model);

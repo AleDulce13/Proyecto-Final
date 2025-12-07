@@ -26,10 +26,6 @@ namespace ProyectoSeguridadInformatica.Services
         {
             var url = Url($"users/{user.Id}", idToken);
             var response = await _http.PutAsJsonAsync(url, user);
-
-            var content = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("RTDB RESPONSE: " + content);  // <-- AGREGA ESTO
-
             response.EnsureSuccessStatusCode();
         }
 
@@ -41,13 +37,13 @@ namespace ProyectoSeguridadInformatica.Services
 
         public async Task UpdateUserAsync(User user)
         {
-            var url = $"{_options.BaseUrl}users/{user.Id}.json";
-            if (!string.IsNullOrEmpty(_options.ApiKey))
+            var url = $"{_opt.BaseUrl}users/{user.Id}.json";
+            if (!string.IsNullOrEmpty(_opt.ApiKey))
             {
-                url += $"?auth={_options.ApiKey}";
+                url += $"?auth={_opt.ApiKey}";
             }
 
-            var response = await _httpClient.PutAsJsonAsync(url, user);
+            var response = await _http.PutAsJsonAsync(url, user);
             response.EnsureSuccessStatusCode();
         }
     }
