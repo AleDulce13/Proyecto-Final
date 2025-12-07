@@ -57,6 +57,18 @@ namespace ProyectoSeguridadInformatica.Services
 
             return user;
         }
+
+        public async Task UpdateUserAsync(User user)
+        {
+            var url = $"{_options.BaseUrl}users/{user.Id}.json";
+            if (!string.IsNullOrEmpty(_options.ApiKey))
+            {
+                url += $"?auth={_options.ApiKey}";
+            }
+
+            var response = await _httpClient.PutAsJsonAsync(url, user);
+            response.EnsureSuccessStatusCode();
+        }
     }
 }
 

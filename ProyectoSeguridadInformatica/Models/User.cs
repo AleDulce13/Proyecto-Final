@@ -12,11 +12,10 @@ namespace ProyectoSeguridadInformatica.Models
 
         [Required]
         [DataType(DataType.Password)]
-        [MinLength(8)]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")]
         public string PasswordHash { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     }
 }
 
