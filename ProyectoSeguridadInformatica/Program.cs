@@ -59,7 +59,8 @@ namespace ProyectoSeguridadInformatica
                 return Policy.WrapAsync(retry, cb);
             });
             // Persistimos las claves de DataProtection para evitar que se pierdan tras reinicios (antiforgery/cookies)
-            var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "dp-keys");
+            var dataProtectionKeysPath = Environment.GetEnvironmentVariable("DP_KEYS_PATH")
+                ?? Path.Combine(builder.Environment.ContentRootPath, "dp-keys");
             Directory.CreateDirectory(dataProtectionKeysPath);
             builder.Services.AddDataProtection()
                 .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
