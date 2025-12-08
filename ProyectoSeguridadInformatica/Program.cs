@@ -9,6 +9,7 @@ using Polly;
 using System.Net;
 using System.Net.Http;
 using System.Threading.RateLimiting;
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace ProyectoSeguridadInformatica
 {
@@ -127,10 +128,43 @@ namespace ProyectoSeguridadInformatica
             // Middleware global de excepciones (antes del resto del pipeline)
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            var forwardedOptions = new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            });
+            };
+
+            var knownProxies = builder.Configuration
+                .GetSection("ForwardedHeaders:KnownProxies")
+                .Get<string[]>();
+            if (knownProxies != null)
+            {
+                foreach (var proxy in knownProxies)
+                {
+                    if (IPAddress.TryParse(proxy, out var ip))
+                    {
+                        forwardedOptions.KnownProxies.Add(ip);
+                    }
+                }
+            }
+
+            var knownNetworks = builder.Configuration
+                .GetSection("ForwardedHeaders:KnownNetworks")
+                .Get<string[]>();
+            if (knownNetworks != null)
+            {
+                foreach (var network in knownNetworks)
+                {
+                    var parts = network.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (parts.Length == 2
+                        && IPAddress.TryParse(parts[0], out var ip)
+                        && int.TryParse(parts[1], out var prefixLength))
+                    {
+                        forwardedOptions.KnownNetworks.Add(new IPNetwork(ip, prefixLength));
+                    }
+                }
+            }
+
+            app.UseForwardedHeaders(forwardedOptions);
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
