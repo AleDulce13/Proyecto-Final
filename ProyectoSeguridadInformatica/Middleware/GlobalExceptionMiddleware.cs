@@ -1,20 +1,23 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace ProyectoSeguridadInformatica.Middleware
 {
     /// <summary>
-    /// Middleware global que captura excepciones no controladas,
-    /// las escribe en consola y redirige al usuario a la página de error.
+    /// Middleware global que captura excepciones no controladas
+    /// y redirige al usuario a la página de error.
     /// </summary>
     public class GlobalExceptionMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<GlobalExceptionMiddleware> _logger;
 
-        public GlobalExceptionMiddleware(RequestDelegate next)
+        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -25,10 +28,7 @@ namespace ProyectoSeguridadInformatica.Middleware
             }
             catch (Exception ex)
             {
-                // Log sencillo a consola con información del fallo
-                Console.WriteLine(
-                    $"[{DateTime.UtcNow:O}] ERROR en {context.Request.Method} {context.Request.Path}\n" +
-                    $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                _logger.LogError(ex, "Error en {Method} {Path}", context.Request.Method, context.Request.Path);
 
                 if (!context.Response.HasStarted)
                 {

@@ -115,7 +115,7 @@ namespace ProyectoSeguridadInformatica
                             PermitLimit = 300,                    // 300 peticiones
                             Window = TimeSpan.FromMinutes(1),     // por minuto por IP
                             QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                            QueueLimit = 50                       // hasta 50 en cola, el resto 429 inmediato
+                            QueueLimit = 0                     // hasta 50 en cola, el resto 429 inmediato
                         }));
 
                 // 2. Política más estricta para endpoints de login / registro (por fingerprint IP+UA)

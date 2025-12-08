@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace ProyectoSeguridadInformatica.Services
 {
@@ -7,11 +8,13 @@ namespace ProyectoSeguridadInformatica.Services
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
+        private readonly ILogger<FirebaseAuthService> _logger;
 
-        public FirebaseAuthService(HttpClient httpClient, IConfiguration config)
+        public FirebaseAuthService(HttpClient httpClient, IConfiguration config, ILogger<FirebaseAuthService> logger)
         {
             _httpClient = httpClient;
             _apiKey = config["Firebase:ApiKey"] ?? string.Empty;
+            _logger = logger;
         }
 
         public async Task<AuthResponse?> RegisterAsync(string email, string password)
@@ -51,7 +54,7 @@ namespace ProyectoSeguridadInformatica.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                _logger.LogError(ex, "Error autenticando usuario en Firebase");
                 return null;
             }
         }

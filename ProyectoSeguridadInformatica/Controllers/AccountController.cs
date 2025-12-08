@@ -11,7 +11,6 @@ namespace ProyectoSeguridadInformatica.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly FirebaseUserService _firebaseUserService;
         private readonly ILogger<AccountController> _logger;
         private readonly IMemoryCache _cache;
         private readonly FirebaseAuthService _authService;
@@ -74,7 +73,6 @@ namespace ProyectoSeguridadInformatica.Controllers
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
-            System.Console.WriteLine("ENTRE A LOGIN");
 
             if (!string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith("/Crypto", StringComparison.OrdinalIgnoreCase))
             {
@@ -92,7 +90,6 @@ namespace ProyectoSeguridadInformatica.Controllers
         [EnableRateLimiting("auth-strict")]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            System.Console.WriteLine("ENTRE A LOGIN POST");
             // 1. Generamos/obtenemos el DeviceId desde el principio
             var deviceId = DeviceIdentifier.GetOrCreateDeviceId(HttpContext);
 
