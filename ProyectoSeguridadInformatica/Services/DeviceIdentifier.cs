@@ -19,7 +19,7 @@ public static class DeviceIdentifier
         _protector = provider.CreateProtector("DeviceIdentifier.v1");
     }
 
-    public static string GetOrCreateDeviceId(HttpContext context)
+    public static string GetOrCreateDeviceId(HttpContext context, bool setCookieIfMissing = true)
     {
         if (context.Request.Cookies.TryGetValue(CookieName, out var protectedId))
         {
@@ -29,8 +29,13 @@ public static class DeviceIdentifier
             }
             catch
             {
-                
+                // Si no se puede desencriptar, continuamos con fallback.
             }
+        }
+
+        if (!setCookieIfMissing)
+        {
+            return Fingerprint(context);
         }
 
         // Primera vez: generar ID criptográficamente seguro
@@ -47,6 +52,15 @@ public static class DeviceIdentifier
         });
 
         return newId;
+    }
+
+    private static string Fingerprint(HttpContext context)
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var ua = context.Request.Headers["User-Agent"].ToString();
+        var data = $"{ip}|{ua}";
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(data));
+        return $"fp-{Convert.ToHexString(hash)}";
     }
 }
 }

@@ -87,7 +87,8 @@ namespace ProyectoSeguridadInformatica
             {
                 static string ClientKey(HttpContext ctx)
                 {
-                    var deviceId = DeviceIdentifier.GetOrCreateDeviceId(ctx);
+                    // No generamos cookie si no viene; usamos fingerprint (IP+UA) para evitar evasión por clientes sin cookies.
+                    var deviceId = DeviceIdentifier.GetOrCreateDeviceId(ctx, setCookieIfMissing: false);
                     var ip = ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
                     return $"{deviceId}:{ip}";
                 }
