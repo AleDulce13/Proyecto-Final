@@ -16,7 +16,7 @@ namespace ProyectoSeguridadInformatica.Models
         [MaxLength(100, ErrorMessage = "La contraseña no puede tener más de 100 caracteres.")]
         [RegularExpression(
             @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
-            ErrorMessage = "La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una letra minúscula, un número y un carácter especial.")]
+            ErrorMessage = "La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una letra minúscula, un número y un carácter especial (!@#$%^&*).")]
         [DisplayName("Contraseña")]
         public string Password { get; set; } = string.Empty;
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.DataProtection;
 using ProyectoSeguridadInformatica.Middleware;
 using ProyectoSeguridadInformatica.Models;
 using ProyectoSeguridadInformatica.Services;
@@ -9,6 +10,7 @@ using Polly;
 using System.Net;
 using System.Net.Http;
 using System.Threading.RateLimiting;
+using System.IO;
 using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace ProyectoSeguridadInformatica
@@ -56,7 +58,12 @@ namespace ProyectoSeguridadInformatica
                 // Política combinada: primero reintentos, luego circuit breaker
                 return Policy.WrapAsync(retry, cb);
             });
-            builder.Services.AddDataProtection();
+            // Persistimos las claves de DataProtection para evitar que se pierdan tras reinicios (antiforgery/cookies)
+            var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "dp-keys");
+            Directory.CreateDirectory(dataProtectionKeysPath);
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+                .SetApplicationName("ProyectoSeguridadInformatica");
             builder.Services.AddMemoryCache();
             builder.Services.AddSingleton<AesService>();
             builder.Services.AddSession(options =>
