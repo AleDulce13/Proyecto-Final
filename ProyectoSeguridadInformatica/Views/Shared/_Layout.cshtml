@@ -5,14 +5,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ProyectoSeguridadInformatica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ProyectoSeguridadInformatica.styles.css" asp-append-version="true" />
 </head>
 <body class="security-theme">
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark security-navbar border-bottom box-shadow mb-3">
-            <div class="container-fluid">
+    <div class="security-bg-grid"></div>
+    <div class="security-bg-aurora aurora-a"></div>
+    <div class="security-bg-aurora aurora-b"></div>
+    <div class="security-bg-aurora aurora-c"></div>
+
+    <header class="security-header">
+        <nav class="navbar navbar-expand-md navbar-dark security-navbar border-bottom">
+            <div class="container-xxl">
                 <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
                     <span class="security-logo"></span>
                     <span class="ms-2">
@@ -24,55 +32,85 @@
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div class="navbar-collapse collapse d-md-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1 gap-md-2">
                         <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Crypto" asp-action="Encrypt">Encriptar</a>
+                            <a class="nav-link" asp-area="" asp-controller="Crypto" asp-action="Encrypt">Encriptar</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Crypto" asp-action="Decrypt">Desencriptar</a>
+                            <a class="nav-link" asp-area="" asp-controller="Crypto" asp-action="Decrypt">Desencriptar</a>
                         </li>
                     </ul>
-                    <ul class="navbar-nav">
-                        @if (!(User?.Identity?.IsAuthenticated ?? false))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-white" asp-controller="Account" asp-action="Register">Registro</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" asp-controller="Account" asp-action="Login">Login</a>
-                            </li>
-                        }
-                        else
-                        {
-                            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.Identity?.Name;
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="security-badge security-badge--pulse d-none d-md-inline-flex">
+                            <span class="security-pill-dot"></span>
+                            Entorno protegido
+                        </div>
+                        <ul class="navbar-nav">
+                            @if (!(User?.Identity?.IsAuthenticated ?? false))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link nav-cta" asp-controller="Account" asp-action="Register">Registro</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link nav-cta" asp-controller="Account" asp-action="Login">Login</a>
+                                </li>
+                            }
+                            else
+                            {
+                                var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.Identity?.Name;
 
-                            <li class="nav-item d-flex align-items-center">
-                                <span class="navbar-text me-2">
-                                    @email
-                                </span>
-                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-link nav-link text-white p-0">Salir</button>
-                                </form>
-                            </li>
-                        }
-                    </ul>
+                                <li class="nav-item d-flex align-items-center">
+                                    <span class="navbar-text me-3 small text-secondary">
+                                        <span class="text-white d-block fw-semibold">@email</span>
+                                        <span class="text-muted-80">Sesión activa</span>
+                                    </span>
+                                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-light btn-sm px-3">Salir</button>
+                                    </form>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <div class="container-xxl page-shell">
+        <div class="page-announcement">
+            <div class="d-flex align-items-center gap-3">
+                <span class="security-pill-dot"></span>
+                <div>
+                    <strong>Security Lab</strong> — Autenticación con Firebase, cifrado AES y defensa contra brute force.
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="security-badge security-badge--ok">TLS activo</span>
+                <span class="security-badge">Rate limiting</span>
+                <span class="security-badge">Logs críticos</span>
+            </div>
+        </div>
+
+        <main role="main" class="pb-5">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - ProyectoSeguridadInformatica - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="footer">
+        <div class="container-xxl d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <div>
+                &copy; 2025 - ProyectoSeguridadInformatica
+                <span class="text-muted-80">• Seguridad aplicada y cifrado</span>
+            </div>
+            <div class="footer-links">
+                <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
+                <span class="separator">/</span>
+                <a asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+            </div>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

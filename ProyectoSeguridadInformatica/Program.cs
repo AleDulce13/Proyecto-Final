@@ -85,30 +85,33 @@ namespace ProyectoSeguridadInformatica
 
             builder.Services.AddRateLimiter(options =>
             {
-                static string ClientKey(HttpContext ctx)
+                static string IpKey(HttpContext ctx)
                 {
-                    // No generamos cookie si no viene; usamos fingerprint (IP+UA) para evitar evasión por clientes sin cookies.
-                    var deviceId = DeviceIdentifier.GetOrCreateDeviceId(ctx, setCookieIfMissing: false);
-                    var ip = ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-                    return $"{deviceId}:{ip}";
+                    return ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
                 }
 
-                // 1. Política GLOBAL combinando DeviceId + IP
+                static string FingerprintKey(HttpContext ctx)
+                {
+                    // Clave estable: fingerprint basado en IP + User-Agent (sin depender de cookies).
+                    return DeviceIdentifier.GetFingerprint(ctx);
+                }
+
+                // 1. Política GLOBAL por IP (cap general)
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
                     httpContext => RateLimitPartition.GetFixedWindowLimiter(
-                        partitionKey: ClientKey(httpContext),
+                        partitionKey: IpKey(httpContext),
                         factory: _ => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = 300,                    // 300 peticiones
-                            Window = TimeSpan.FromMinutes(1),     // por minuto por clave
+                            Window = TimeSpan.FromMinutes(1),     // por minuto por IP
                             QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                             QueueLimit = 50                       // hasta 50 en cola, el resto 429 inmediato
                         }));
 
-                // 2. Política más estricta para endpoints de login / registro (DeviceId + IP)
+                // 2. Política más estricta para endpoints de login / registro (por fingerprint IP+UA)
                 options.AddPolicy("auth-strict", httpContext =>
                     RateLimitPartition.GetTokenBucketLimiter(
-                        partitionKey: ClientKey(httpContext),
+                        partitionKey: FingerprintKey(httpContext),
                         factory: _ => new TokenBucketRateLimiterOptions
                         {
                             TokenLimit = 20,                          // capacidad máxima del bucket
@@ -191,6 +194,17 @@ namespace ProyectoSeguridadInformatica
             }
 
             app.UseForwardedHeaders(forwardedOptions);
+
+            // Log temporal para verificar IP real y cabeceras reenviadas antes del rate limiter.
+            app.Use(async (context, next) =>
+            {
+                var remoteIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                var xff = context.Request.Headers["X-Forwarded-For"].ToString();
+                context.RequestServices
+                    .GetRequiredService<ILogger<Program>>()
+                    .LogInformation("Client IP={RemoteIp} XFF={XFF}", remoteIp, xff);
+                await next();
+            });
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

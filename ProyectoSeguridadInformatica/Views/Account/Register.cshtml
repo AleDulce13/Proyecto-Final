@@ -4,43 +4,77 @@
     ViewData["Title"] = "Registro";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6 security-card">
-        <h2 class="mb-2 security-section-title">Registro de usuario</h2>
-        <p class="security-section-subtitle mb-4">
-            Crea una cuenta para acceder al módulo de cifrado. Las credenciales se gestionan a través
-            de <strong>Firebase Auth</strong> en un entorno de práctica. No utilices una contraseña real
-            de otros servicios.
-        </p>
-
-        <form asp-action="Register" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="mb-3">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="security-card h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <div class="security-pill mb-3">
+                        <span class="security-pill-dot"></span>
+                        Alta en entorno controlado
+                    </div>
+                    <h2 class="mb-2 security-section-title">Registro de usuario</h2>
+                    <p class="security-section-subtitle">
+                        Crea tu cuenta para acceder al módulo de cifrado. Las credenciales se gestionan con
+                        <strong>Firebase Auth</strong>. Evita usar contraseñas reales de otros servicios.
+                    </p>
+                </div>
+                <span class="security-badge">Tiempo estimado: 30s</span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-            <div class="mb-3">
-                <label asp-for="ConfirmPassword" class="form-label"></label>
-                <input asp-for="ConfirmPassword" class="form-control" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-            </div>
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
 
-            <button type="submit" class="btn btn-primary">Registrarse</button>
-        </form>
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <button type="submit" class="btn btn-primary">Registrarse</button>
+                    <span class="security-badge security-badge--ok">Antifalsificación</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="security-card security-card-light h-100">
+            <h3 class="security-section-title mb-3">Pistas de higiene digital</h3>
+            <div class="security-steps mb-3">
+                <div class="glass-tile">
+                    <strong>Contraseña dedicada</strong><br />
+                    <small>Usa una frase distinta a la de tus cuentas reales. Este es un entorno de prácticas.</small>
+                </div>
+                <div class="glass-tile">
+                    <strong>Correo válido</strong><br />
+                    <small>Necesario para identificarte y probar la recuperación de sesión.</small>
+                </div>
+                <div class="glass-tile">
+                    <strong>CSRF protegido</strong><br />
+                    <small>Los formularios incluyen token antifalsificación para frenar ataques cross-site.</small>
+                </div>
+            </div>
+            <p class="security-note mb-0">
+                Una vez registrado podrás usar el módulo de cifrado con AES y probar las defensas de control de acceso.
+            </p>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
-
-

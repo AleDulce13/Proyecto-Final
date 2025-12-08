@@ -35,7 +35,7 @@ public static class DeviceIdentifier
 
         if (!setCookieIfMissing)
         {
-            return Fingerprint(context);
+            return GetFingerprint(context);
         }
 
         // Primera vez: generar ID criptográficamente seguro
@@ -54,7 +54,7 @@ public static class DeviceIdentifier
         return newId;
     }
 
-    private static string Fingerprint(HttpContext context)
+    public static string GetFingerprint(HttpContext context)
     {
         var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var ua = context.Request.Headers["User-Agent"].ToString();

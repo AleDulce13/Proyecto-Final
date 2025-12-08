@@ -4,42 +4,77 @@
     ViewData["Title"] = "Login";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6 security-card">
-        <h2 class="mb-2 security-section-title">Iniciar sesión</h2>
-        <p class="security-section-subtitle mb-4">
-            Acceso protegido para poder utilizar las funcionalidades de cifrado y descifrado con AES.
-            La validación de credenciales se delega en <strong>Firebase Auth</strong> (entorno de práctica).
-        </p>
-
-        @{
-            var authMessage = TempData["ErrorMessage"] as string;
-        }
-
-        <form asp-action="Login" method="post">
-            <input type="hidden" asp-for="ReturnUrl" />
-
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="mb-3">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="security-card h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <div class="security-pill mb-3">
+                        <span class="security-pill-dot"></span>
+                        Inicio de sesión protegido
+                    </div>
+                    <h2 class="mb-2 security-section-title">Iniciar sesión</h2>
+                    <p class="security-section-subtitle">
+                        Acceso al laboratorio de cifrado. La autenticación se delega en <strong>Firebase Auth</strong>;
+                        la app sólo consume tokens, nunca guarda contraseñas.
+                    </p>
+                </div>
+                <span class="security-badge security-badge--ok">Sesión segura</span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
+            @{
+                var authMessage = TempData["ErrorMessage"] as string;
+            }
 
-            <button type="submit" class="btn btn-primary">Entrar de forma segura</button>
-        </form>
+            <form asp-action="Login" method="post" class="mt-3">
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <button type="submit" class="btn btn-primary">Entrar de forma segura</button>
+                    <span class="security-badge">CSRF activo</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="security-card security-card-light h-100">
+            <h3 class="security-section-title mb-3">Checklist de seguridad</h3>
+            <div class="security-steps mb-3">
+                <div class="glass-tile">
+                    <strong>1. Token emitido</strong><br />
+                    <small>Firebase valida credenciales; sólo se devuelve IdToken seguro.</small>
+                </div>
+                <div class="glass-tile">
+                    <strong>2. Cookie segura</strong><br />
+                    <small>El token se transforma en cookie autenticada, aislada por HttpOnly.</small>
+                </div>
+                <div class="glass-tile">
+                    <strong>3. Rutas protegidas</strong><br />
+                    <small>Controladores de cifrado exigen sesión activa y rol autenticado.</small>
+                </div>
+            </div>
+            <p class="security-note mb-0">
+                Si no tienes cuenta, puedes crear una en minutos en el módulo de <a asp-controller="Account" asp-action="Register">Registro</a>.
+                No uses contraseñas reales de otros servicios.
+            </p>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
-
-

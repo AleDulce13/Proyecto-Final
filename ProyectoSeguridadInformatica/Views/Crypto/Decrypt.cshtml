@@ -4,43 +4,85 @@
     ViewData["Title"] = "Desencriptar";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8 security-card">
-        <h2 class="mb-2 security-section-title">Desencriptar texto con AES</h2>
-        <p class="security-section-subtitle mb-4">
-            Introduce el texto cifrado en Base64 generado por este mismo sitio junto con la misma clave
-            (contraseña) que usaste al cifrar. Si el texto o la clave no coinciden, el sistema mostrará un error.
-        </p>
-
-        <form asp-action="Decrypt" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="mb-3">
-                <label asp-for="CipherText" class="form-label"></label>
-                <textarea asp-for="CipherText" class="form-control" rows="4"></textarea>
-                <span asp-validation-for="CipherText" class="text-danger"></span>
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="security-card h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <div class="security-pill mb-3">
+                        <span class="security-pill-dot"></span>
+                        Recuperación de datos cifrados
+                    </div>
+                    <h2 class="mb-2 security-section-title">Desencriptar texto con AES</h2>
+                    <p class="security-section-subtitle">
+                        Introduce el texto cifrado en Base64 generado aquí y la misma clave que usaste al cifrar.
+                        Si algo no coincide, el sistema avisará para evitar falsas recuperaciones.
+                    </p>
+                </div>
+                <span class="security-badge">Verificación PBKDF2</span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Key" class="form-label"></label>
-                <input asp-for="Key" class="form-control" type="password" />
-                <span asp-validation-for="Key" class="text-danger"></span>
+            <form asp-action="Decrypt" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="CipherText" class="form-label"></label>
+                    <textarea asp-for="CipherText" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="CipherText" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Key" class="form-label"></label>
+                    <input asp-for="Key" class="form-control" type="password" />
+                    <span asp-validation-for="Key" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <button type="submit" class="btn btn-primary">Desencriptar</button>
+                    <span class="security-badge security-badge--ok">CSRF activo</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="security-card security-card-light h-100">
+            <h3 class="security-section-title mb-3">Buenas prácticas</h3>
+            <div class="security-steps mb-3">
+                <div class="glass-tile">
+                    <strong>Texto cifrado original</strong><br />
+                    <small>Usa exactamente el Base64 generado en el módulo de encriptar.</small>
+                </div>
+                <div class="glass-tile">
+                    <strong>Clave correcta</strong><br />
+                    <small>La misma passphrase derivará la clave AES. Un caracter distinto fallará.</small>
+                </div>
+                <div class="glass-tile">
+                    <strong>Sesión activa</strong><br />
+                    <small>Las rutas de descifrado están protegidas por autenticación.</small>
+                </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Desencriptar</button>
-        </form>
-
-        @if (!string.IsNullOrEmpty(Model.PlainText))
-        {
-            <hr />
-            <h4>Texto plano</h4>
-            <textarea class="form-control" rows="4" readonly style="background-color:#020617;color:#e5e7eb;">@Model.PlainText</textarea>
-        }
+            @if (!string.IsNullOrEmpty(Model.PlainText))
+            {
+                <div class="result-area">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h5 class="mb-0">Texto plano recuperado</h5>
+                        <span class="security-badge security-badge--ok">Éxito</span>
+                    </div>
+                    <textarea class="form-control" rows="6" readonly>@Model.PlainText</textarea>
+                </div>
+            }
+            else
+            {
+                <p class="security-note mb-0">
+                    Pega aquí el texto cifrado y tu clave. Si hay discrepancia el sistema lo indicará sin exponer datos.
+                </p>
+            }
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
-
-

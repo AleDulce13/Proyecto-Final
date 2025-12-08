@@ -3,19 +3,23 @@
 }
 
 <div class="security-hero">
-    <div class="row mb-4">
-        <div class="col-lg-7 mb-4 mb-lg-0">
-            <div class="security-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
+    <div class="row g-4 align-items-stretch">
+        <div class="col-lg-7">
+            <div class="security-card h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
                     <div>
                         <div class="security-pill mb-3">
                             <span class="security-pill-dot"></span>
                             Laboratorio práctico de seguridad web
                         </div>
                         <h1 class="security-hero-title mb-2">
-                            Seguridad informática aplicada a
-                            <span class="security-hero-highlight">autenticación y cifrado</span>
+                            Seguridad aplicada a <span class="security-hero-highlight">autenticación + cifrado</span>
                         </h1>
+                        <p class="security-hero-lead">
+                            Prueba, rompe y entiende buenas prácticas de identidad, cifrado AES y control de acceso
+                            sin abandonar un entorno didáctico. Diseñado como un <strong>campo de entrenamiento</strong>
+                            donde cada acción deja trazas y controles visibles.
+                        </p>
                     </div>
                     <div class="text-end">
                         <div class="security-kpi">2</div>
@@ -23,119 +27,91 @@
                     </div>
                 </div>
 
-                <p class="security-hero-lead mb-3">
-                    Este sitio simula un entorno seguro donde los usuarios se registran, inician sesión
-                    y utilizan cifrado simétrico AES con contraseña para proteger texto sensible.
-                    Está pensado como un <strong>laboratorio educativo</strong>, por lo que combina buenas prácticas
-                    de seguridad con algunas limitaciones deliberadas.
-                </p>
+                <div class="d-flex flex-wrap hero-actions">
+                    <a asp-controller="Crypto" asp-action="Encrypt" class="btn btn-primary">Encriptar ahora</a>
+                    <a asp-controller="Crypto" asp-action="Decrypt" class="btn btn-outline-light">Desencriptar</a>
+                </div>
+
+                <div class="security-divider"></div>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="glass-tile">
+                            <strong>Autenticación gestionada</strong><br />
+                            <small>Firebase Auth emite tokens; el sitio nunca almacena contraseñas.</small>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="glass-tile">
+                            <strong>Cifrado simétrico AES</strong><br />
+                            <small>Derivación PBKDF2 desde tu passphrase para reforzar contra fuerza bruta.</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="col-lg-5">
             <div class="security-card security-card-light h-100">
-                <h2 class="security-section-title mb-3">Resumen de la arquitectura</h2>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="security-section-title mb-0">Estado de seguridad</h2>
+                    <span class="security-badge security-badge--ok">Protección activa</span>
+                </div>
                 <p class="security-section-subtitle mb-3">
-                    El proyecto se basa en ASP.NET Core MVC con sesiones y servicios dedicados para
-                    autenticación y cifrado:
+                    ASP.NET Core MVC + Firebase Auth + AES con controles de sesión, antifalsificación y límites de tasa.
                 </p>
-
                 <ul class="security-list mb-3">
                     <li>
-                        Autenticación delegada en <strong>Firebase Auth</strong> :
-                        la aplicación nunca almacena contraseñas, sólo consume tokens emitidos por Firebase.
+                        <strong>Cookies + [Authorize]</strong> para aislar rutas de cifrado y evitar accesos anónimos.
                     </li>
                     <li>
-                        Servicio <strong>FirebaseUserService</strong> para leer y guardar el perfil básico
-                        de usuario en Firebase Realtime Database usando <code>IdToken</code> por petición.
+                        <strong>FirebaseUserService</strong> lee/escribe perfil con <code>IdToken</code> por petición.
                     </li>
                     <li>
-                        Servicio <strong>AesService</strong> que cifra y descifra usando AES (cifrado simétrico)
-                        a partir de una contraseña que introduce el propio usuario.
-                    </li>
-                    <li>
-                        Controladores protegidos con <strong>cookies de autenticación</strong> y
-                        <code>[Authorize]</code> para limitar el acceso a las acciones de cifrado y descifrado.
+                        <strong>AesService</strong> cifra/descifra texto sensible usando tu propia contraseña.
                     </li>
                 </ul>
+                <div class="security-divider"></div>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="metric-chip">TLS + HTTPS</span>
+                    <span class="metric-chip">CSRF tokens</span>
+                    <span class="metric-chip">Logging crítico</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row gy-4">
-        <div class="col-md-6">
-            <div class="security-card h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="security-section-title mb-0">¿Qué hace seguro a este sitio?</h2>
-                    <span class="security-badge security-badge--ok">Defensas aplicadas</span>
-                </div>
+    <div class="security-divider"></div>
 
-                <ul class="security-list mb-3">
-                    <li>
-                        <strong>Autenticación gestionada por Firebase</strong>  
-                        Las credenciales se validan en Firebase Auth y la aplicación sólo maneja tokens
-                        de acceso. No se almacenan contraseñas ni hashes locales.
-                    </li>
-                    <li>
-                        <strong>Cifrado simétrico con AES</strong>  
-                        El texto que se cifra desde la sección de criptografía se protege con AES derivando la clave
-                        de una contraseña elegida por el usuario mediante PBKDF2, lo que dificulta ataques de fuerza bruta.
-                    </li>
-                    <li>
-                        <strong>Protección de rutas sensibles</strong>  
-                        Las acciones de <em>Encriptar</em> y <em>Desencriptar</em> en el controlador de criptografía
-                        sólo son accesibles si la sesión está autenticada; en caso contrario, se redirige al login
-                        con un mensaje claro.
-                    </li>
-                    <li>
-                        <strong>Tokens antifalsificación (CSRF)</strong>  
-                        Los formularios críticos (`Register`, `Login`, `Encrypt`, `Decrypt`) usan
-                        <code>[ValidateAntiForgeryToken]</code>, reduciendo el riesgo de ataques CSRF.
-                    </li>
-                    <li>
-                        <strong>Validación de entrada</strong>  
-                        Los modelos de vista validan campos obligatorios y se muestran errores de forma explícita,
-                        disminuyendo problemas derivados de entradas incompletas o malformadas.
-                    </li>
-                </ul>
-
-                <p class="security-note mb-0">
-                    En conjunto, estas capas ilustran cómo <strong>autenticación, cifrado y validación</strong>
-                    trabajan juntas para proteger la información de los usuarios.
-                </p>
+    <div class="feature-grid">
+        <div class="security-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="security-section-title mb-0">Defensas aplicadas</h2>
+                <span class="security-badge security-badge--ok">Ready</span>
             </div>
+            <ul class="security-list mb-3">
+                <li><strong>Firebase Auth</strong> valida credenciales; no se almacenan hashes locales.</li>
+                <li><strong>Protección de rutas</strong> en Encriptar/Desencriptar con cookies de sesión + redirects controlados.</li>
+                <li><strong>Antifalsificación</strong> en los formularios Register, Login, Encrypt, Decrypt.</li>
+                <li><strong>Validación de entrada</strong> con modelos de vista y mensajes claros de error.</li>
+            </ul>
+            <p class="security-note mb-0">
+                Autenticación, cifrado y validación trabajan juntos para proteger la información de los usuarios.
+            </p>
         </div>
 
-        <div class="col-md-6">
-            <div class="security-card h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="security-section-title mb-0">Resiliencia y monitorización</h2>
-                    <span class="security-badge security-badge--ok">Defensas activas</span>
-                </div>
-
-                <ul class="security-list mb-3">
-                    <li>
-                        <strong>Rate limiting y anti‑bruteforce</strong>  
-                        El acceso a login y registro está protegido con limitadores de tasa nativos de ASP.NET Core
-                        y un contador de intentos por email + IP + dispositivo, reduciendo ataques de fuerza bruta.
-                    </li>
-                    <li>
-                        <strong>Resiliencia con Polly</strong>  
-                        Las llamadas a Firebase usan reintentos con retroceso exponencial y <em>circuit breaker</em>,
-                        protegiendo el sistema frente a fallos temporales del backend externo.
-                    </li>
-                    <li>
-                        <strong>Logging de eventos críticos</strong>  
-                        Se registran intentos de login, bloqueos por demasiados intentos, errores globales
-                        y activación de políticas de resiliencia, facilitando la detección de abusos y problemas.
-                    </li>
-                </ul>
-
-                <p class="security-note mb-0">
-                    Estas capacidades ayudan a que el sistema falle de forma controlada y permita
-                    analizar qué está ocurriendo durante un ataque o incidente.
-                </p>
+        <div class="security-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="security-section-title mb-0">Resiliencia y monitorización</h2>
+                <span class="security-badge">Observabilidad</span>
             </div>
+            <ul class="security-list mb-3">
+                <li><strong>Rate limiting</strong> y anti-bruteforce en login/registro (email + IP + dispositivo).</li>
+                <li><strong>Polly</strong> para reintentos y circuit breaker al consultar Firebase.</li>
+                <li><strong>Logging</strong> de eventos críticos, bloqueos y errores globales.</li>
+            </ul>
+            <p class="security-note mb-0">
+                El sistema falla de forma controlada y deja evidencia útil durante un ataque o incidente.
+            </p>
         </div>
     </div>
 </div>
